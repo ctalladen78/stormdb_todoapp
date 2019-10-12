@@ -4,12 +4,12 @@
 storm db has all the capabilities of boltdb with the added query functionality 
 
 ### to run:
-	`$ dep ensure`
-	`$ go clean`
-	`$ go build`
+	$ dep ensure
+	$ go clean
+	$ go build
 
 run the binary output
-command input
+command input:
 	"all"
 	"new"
 	"delete"

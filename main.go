@@ -21,11 +21,12 @@ type Node struct {
 }
 
 const (
-	ALL    = "all"
-	NEW    = "new"
-	DELETE = "delete"
-	UPDATE = "update"
-	FIND   = "find"
+	ALL      = "all"
+	NEW      = "new"
+	DELETE   = "delete"
+	UPDATE   = "update"
+	FIND     = "find"
+	RUNTESTS = "test"
 )
 
 func main() {
@@ -42,8 +43,17 @@ func main() {
 		log.Fatal("DB NEW error ", err)
 	}
 
-	// init with new bucket, initial data
+	// init with new bucket, initial user data
 	err = db.Init(&store.Task{})
+	err = db.Init(&store.User{})
+
+	u1 := &store.User{Status: []byte("busy"), Name: []byte("sara")}
+	u2 := &store.User{Status: []byte("busy"), Name: []byte("chris")}
+	err = db.CreateUser(u1)
+	err = db.CreateUser(u2)
+	// err = db.CreateUser(&store.User{Status: []byte("busy"), Name: []byte("sara")})
+	// err = db.CreateUser(&store.User{Status: []byte("open"), Name: []byte("chris")})
+
 	if err != nil {
 		log.Fatal("DB init error ", err)
 	}
@@ -95,18 +105,24 @@ func main() {
 		if err != nil {
 			log.Fatal("Create error ", err)
 		}
-	case FIND: // find by index
+	case FIND: // find by list index
 		idx, err := strconv.Atoi(os.Args[2])
 		if err != nil {
 			log.Fatal("pls enter a command")
 		}
-		getAllResult, err := db.GetAll(storePath)
-		if err != nil {
+		getAllResult, err := db.GetAll(storePath) // post transaction routine TODO in db routine
+		// to := &store.Task{}
+		to, err := db.FindOne(getAllResult[idx].ID)
+
+		if err != nil || to != nil {
 			log.Fatal("GET all error", err)
 		}
 		// foundTask, err := FindOne(idx)
-		log.Print("FIND ONE: ", getAllResult[idx])
-	case DELETE:
+		log.Printf("FIND ONE: %s", to.Value)
+	case RUNTESTS:
+		db.GetTasksWhereCreatorStatus("open") // relational
+		db.GetDoneTasks()                     // filter
+		db.UpdateTasksAs("done")              // map multiple items
 
 	}
 

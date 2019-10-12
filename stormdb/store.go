@@ -5,6 +5,7 @@ import (
 
 	"github.com/asdine/storm"
 	"github.com/asdine/storm/codec/json"
+	"github.com/asdine/storm/q"
 	"github.com/lithammer/shortuuid"
 	// "github.com/lithammer/shortuuid"
 )
@@ -20,6 +21,14 @@ type Store struct {
 	Bucket []byte
 }
 
+// user model
+type User struct {
+	ID     string ``
+	Status []byte
+	Name   []byte
+}
+
+// task model
 type Task struct {
 	ID     string ``
 	Bucket string `storm:index`
@@ -62,6 +71,12 @@ func (s *Store) GetAll(dbPath string) ([]*Task, error) {
 	return res, nil
 }
 
+func (s *Store) CreateUser(data *User) error {
+	key := shortuuid.New()
+	data.ID = key
+	return s.Db.Save(data)
+}
+
 func (s *Store) CreateTask(data *Task) error {
 	log.Println("DB SAVE ", s.Db)
 	// TODO setup tx to maintain process safety
@@ -85,11 +100,61 @@ func (s *Store) UpdateTask(key string, newValue string) error {
 	s.Db.Update(currentTask)
 	return nil
 }
-func (s *Store) FindOne(idx int) (*Task, error) {
-	return nil, nil
 
+// Select a list of records that match a list of matchers. Doesn't use indexes.
+// Select(matchers ...q.Matcher) Query
+func (s *Store) FindOne(key string) (*Task, error) {
+	output := &Task{}
+
+	// dbOne("index", val, output)
+	err := s.Db.One("ID", key, output)
+	if err != nil {
+		return nil, nil
+	}
+	return nil, nil
 }
 
 func (s *Store) DeleteTask(bucket string, key string) error {
+	return nil
+}
+
+// filter sort transaction
+func (s *Store) FilterTasksByStartDate() ([]*Task, error) {
+	return nil, nil
+}
+
+// filter transaction
+func (s *Store) GetDoneTasks() ([]*Task, error) {
+
+	return nil, nil
+}
+
+// flutter client api call
+// Future<List<UserData>> getUserListByCity({placeId: String}) async {
+// get selected city placeId
+// get users where currentLocation : City.placeId
+// var queryParamString = "?where={\"currentLocation\":{\"\$inQuery\":{\"where\":{\"placeId\":\"$placeId\"},\"className\":\"City\"}}}";
+
+// join transaction
+// relational query between different objects
+// task creator status: busy, available
+// parse GET Comments 'where={"related_post":{"$inQuery":{"where":{"post_field":{"$equals":"abc123"}},"className":"Post"}}}'
+func (s *Store) GetTasksWhereCreatorStatus(status string) ([]*Task, error) {
+	res := []*Task{}
+	// TODO make nested queries
+	// OPTION 1: client makes 2 queries, one to get filtered dataset,
+	// then in client side map each item a concurrent function make parallel filter transaction
+	m1 := q.Matcher(q.Eq("Status", status))
+	// bolt.Select(...) doesnt use index
+	q1 := s.Db.Select(m1)
+	log.Print("QUERY ", q1)
+
+	return res, nil
+
+}
+
+// map multiple items
+// where={"title": "My post title", "likes": { "$gt": 100 }}'
+func (s *Store) UpdateTasksAs(user string) error {
 	return nil
 }
