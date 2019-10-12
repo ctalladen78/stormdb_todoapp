@@ -15,3 +15,6 @@ command input:
 	"delete"
 	"update"
 	"find"
+
+TODO: implement relational join query
+HACK: use different files as db

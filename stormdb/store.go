@@ -139,18 +139,22 @@ func (s *Store) GetDoneTasks() ([]*Task, error) {
 // relational query between different objects
 // task creator status: busy, available
 // parse GET Comments 'where={"related_post":{"$inQuery":{"where":{"post_field":{"$equals":"abc123"}},"className":"Post"}}}'
-func (s *Store) GetTasksWhereCreatorStatus(status string) ([]*Task, error) {
+func GetTasksWhereCreatorStatus(userdb string, taskdb string, status string) ([]*Task, error) {
+	udb, err := storm.Open(userdb, storm.Codec(json.Codec))
+	tdb, err := storm.Open(taskdb, storm.Codec(json.Codec))
+	if err != nil {
+		return nil, err
+	}
 	res := []*Task{}
 	// TODO make nested queries
 	// OPTION 1: client makes 2 queries, one to get filtered dataset,
 	// then in client side map each item a concurrent function make parallel filter transaction
 	m1 := q.Matcher(q.Eq("Status", status))
 	// bolt.Select(...) doesnt use index
-	q1 := s.Db.Select(m1)
+	q1 := userdb.Select(m1)
+	q2 := taskdb.Select(m1)
 	log.Print("QUERY ", q1)
-
 	return res, nil
-
 }
 
 // map multiple items

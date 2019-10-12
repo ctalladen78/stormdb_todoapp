@@ -35,24 +35,25 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	storePath = filepath.Join(dir, "/storm.db")
-	log.Println(storePath)
+	taskStorePath := filepath.Join(dir, "/task.db")
+	userStorePath := filepath.Join(dir, "/user.db")
+	log.Println(taskStorePath)
+	log.Println(userStorePath)
 
-	db, err := store.NewDB(storePath)
+	userDb, err := store.NewDB(userStorePath)
+	taskDb, err := store.NewDB(taskStorePath)
 	if err != nil {
 		log.Fatal("DB NEW error ", err)
 	}
 
 	// init with new bucket, initial user data
-	err = db.Init(&store.Task{})
-	err = db.Init(&store.User{})
+	err = taskDb.Init(&store.Task{})
+	err = userDb.Init(&store.User{})
 
 	u1 := &store.User{Status: []byte("busy"), Name: []byte("sara")}
 	u2 := &store.User{Status: []byte("busy"), Name: []byte("chris")}
-	err = db.CreateUser(u1)
-	err = db.CreateUser(u2)
-	// err = db.CreateUser(&store.User{Status: []byte("busy"), Name: []byte("sara")})
-	// err = db.CreateUser(&store.User{Status: []byte("open"), Name: []byte("chris")})
+	err = userDb.CreateUser(u1)
+	err = userDb.CreateUser(u2)
 
 	if err != nil {
 		log.Fatal("DB init error ", err)
@@ -67,7 +68,7 @@ func main() {
 	switch input {
 	case ALL:
 		// Get All
-		getAllResult, err := db.GetAll(storePath)
+		getAllResult, err := taskDb.GetAll(storePath)
 		if err != nil {
 			log.Fatal("GET all error", err)
 		}
@@ -76,8 +77,6 @@ func main() {
 		for i, s := range getAllResult {
 			log.Printf("%d %s", i, s)
 		}
-		bucket := db.Db.Bucket() // should print bucket name
-		log.Printf("bucket %s", bucket)
 	case NEW:
 		todoval := os.Args[2]
 		if input == "" || todoval == "" {
@@ -85,7 +84,7 @@ func main() {
 		}
 		t := &store.Task{Value: []byte(todoval)}
 		// Create
-		err = db.CreateTask(t)
+		err = taskDb.CreateTask(t)
 		if err != nil {
 			log.Fatal("Create error ", err)
 		}
@@ -95,12 +94,12 @@ func main() {
 		if input == "" || newval == "" || err != nil {
 			log.Fatal("pls enter a command")
 		}
-		getAllResult, err := db.GetAll(storePath)
+		getAllResult, err := taskDb.GetAll(storePath)
 		if len(getAllResult) > 1 {
 			// r := rand.New(rand.NewSource(99)) // Update random item
 			// rnum := r.Intn(len(getAllResult))
-			// err = db.UpdateTask(getAllResult[rnum].ID, newval)
-			err = db.UpdateTask(getAllResult[idx].ID, newval)
+			// err = taskDb.UpdateTask(getAllResult[rnum].ID, newval)
+			err = taskDb.UpdateTask(getAllResult[idx].ID, newval)
 		}
 		if err != nil {
 			log.Fatal("Create error ", err)
@@ -110,9 +109,9 @@ func main() {
 		if err != nil {
 			log.Fatal("pls enter a command")
 		}
-		getAllResult, err := db.GetAll(storePath) // post transaction routine TODO in db routine
+		getAllResult, err := taskDb.GetAll(storePath) // post transaction routine TODO in db routine
 		// to := &store.Task{}
-		to, err := db.FindOne(getAllResult[idx].ID)
+		to, err := taskDb.FindOne(getAllResult[idx].ID)
 
 		if err != nil || to != nil {
 			log.Fatal("GET all error", err)
@@ -120,9 +119,9 @@ func main() {
 		// foundTask, err := FindOne(idx)
 		log.Printf("FIND ONE: %s", to.Value)
 	case RUNTESTS:
-		db.GetTasksWhereCreatorStatus("open") // relational
-		db.GetDoneTasks()                     // filter
-		db.UpdateTasksAs("done")              // map multiple items
+		store.GetTasksWhereCreatorStatus("open") // relational
+		taskDb.GetDoneTasks()                    // filter
+		taskDb.UpdateTasksAs("done")             // map multiple items
 
 	}
 
