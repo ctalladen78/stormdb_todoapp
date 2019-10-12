@@ -135,7 +135,7 @@ func (s *Store) GetDoneTasks() ([]*Task, error) {
 // get users where currentLocation : City.placeId
 // var queryParamString = "?where={\"currentLocation\":{\"\$inQuery\":{\"where\":{\"placeId\":\"$placeId\"},\"className\":\"City\"}}}";
 
-// join transaction
+// join relational transaction
 // relational query between different objects
 // task creator status: busy, available
 // parse GET Comments 'where={"related_post":{"$inQuery":{"where":{"post_field":{"$equals":"abc123"}},"className":"Post"}}}'
