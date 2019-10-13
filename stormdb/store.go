@@ -103,15 +103,20 @@ func (s *Store) UpdateTask(key string, newValue string) error {
 
 // Select a list of records that match a list of matchers. Doesn't use indexes.
 // Select(matchers ...q.Matcher) Query
-func (s *Store) FindOne(key string) (*Task, error) {
+func (s *Store) FindOne(searchString string) (*Task, error) {
+	// output := []*Task{}
 	output := &Task{}
 
-	// dbOne("index", val, output)
-	err := s.Db.One("ID", key, output)
+	err := s.Db.One("ID", searchString, output)
+	// err := s.Db.One("ID", searchString, output)
+	// query := s.Db.Select(q.Eq("Status", []byte("open")))
+	// err := s.Db.Find("Status", searchString, output)
+
 	if err != nil {
+		log.Fatal("FETCH error ", err)
 		return nil, nil
 	}
-	return nil, nil
+	return output, nil
 }
 
 func (s *Store) DeleteTask(bucket string, key string) error {
@@ -125,8 +130,10 @@ func (s *Store) FilterTasksByStartDate() ([]*Task, error) {
 
 // filter transaction
 func (s *Store) GetDoneTasks() ([]*Task, error) {
+	res := []*Task{}
 
-	return nil, nil
+	err := s.Db.Find("Status", "done", res)
+	return res, err
 }
 
 // flutter client api call
@@ -141,7 +148,7 @@ func (s *Store) GetDoneTasks() ([]*Task, error) {
 // parse GET Comments 'where={"related_post":{"$inQuery":{"where":{"post_field":{"$equals":"abc123"}},"className":"Post"}}}'
 func GetTasksWhereCreatorStatus(userdb string, taskdb string, status string) ([]*Task, error) {
 	udb, err := storm.Open(userdb, storm.Codec(json.Codec))
-	tdb, err := storm.Open(taskdb, storm.Codec(json.Codec))
+	// tdb, err := storm.Open(taskdb, storm.Codec(json.Codec))
 	if err != nil {
 		return nil, err
 	}
@@ -151,8 +158,9 @@ func GetTasksWhereCreatorStatus(userdb string, taskdb string, status string) ([]
 	// then in client side map each item a concurrent function make parallel filter transaction
 	m1 := q.Matcher(q.Eq("Status", status))
 	// bolt.Select(...) doesnt use index
-	q1 := userdb.Select(m1)
-	q2 := taskdb.Select(m1)
+	q1 := udb.Select(m1)
+	// res := q1.Find(index)
+	// q2 := tdb.Select(res)
 	log.Print("QUERY ", q1)
 	return res, nil
 }

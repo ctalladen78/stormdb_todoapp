@@ -6,19 +6,12 @@ import (
 	"os"
 	"path/filepath"
 	"strconv"
-	"time"
-
-	"github.com/asdine/storm/q"
 )
 
 var (
 	db        store.Store
 	storePath string
 )
-
-type Node struct {
-	ID string
-}
 
 const (
 	ALL      = "all"
@@ -68,7 +61,7 @@ func main() {
 	switch input {
 	case ALL:
 		// Get All
-		getAllResult, err := taskDb.GetAll(storePath)
+		getAllResult, err := taskDb.GetAll(taskStorePath)
 		if err != nil {
 			log.Fatal("GET all error", err)
 		}
@@ -94,7 +87,7 @@ func main() {
 		if input == "" || newval == "" || err != nil {
 			log.Fatal("pls enter a command")
 		}
-		getAllResult, err := taskDb.GetAll(storePath)
+		getAllResult, err := taskDb.GetAll(taskStorePath)
 		if len(getAllResult) > 1 {
 			// r := rand.New(rand.NewSource(99)) // Update random item
 			// rnum := r.Intn(len(getAllResult))
@@ -106,44 +99,39 @@ func main() {
 		}
 	case FIND: // find by list index
 		idx, err := strconv.Atoi(os.Args[2])
-		if err != nil {
-			log.Fatal("pls enter a command")
-		}
-		getAllResult, err := taskDb.GetAll(storePath) // post transaction routine TODO in db routine
+		getAllResult, err := taskDb.GetAll(taskStorePath) // post transaction routine TODO in db routine
 		// to := &store.Task{}
-		to, err := taskDb.FindOne(getAllResult[idx].ID)
-
-		if err != nil || to != nil {
+		// to, err := taskDb.FindOne(getAllResult[idx].ID)
+		if err != nil {
 			log.Fatal("GET all error", err)
 		}
-		// foundTask, err := FindOne(idx)
-		log.Printf("FIND ONE: %s", to.Value)
+		log.Printf("FIND ONE: %s", getAllResult[idx])
 	case RUNTESTS:
-		store.GetTasksWhereCreatorStatus("open") // relational
-		taskDb.GetDoneTasks()                    // filter
-		taskDb.UpdateTasksAs("done")             // map multiple items
+		// store.GetTasksWhereCreatorStatus("open") // relational
+		taskDb.GetDoneTasks()        // filter
+		taskDb.UpdateTasksAs("done") // map multiple items
 
 	}
 
 	// for serializing into json, convert []byte to string
 
 	// Filter query using matchers
-	var filters []q.Matcher
-	var completed []*store.Task
-	filters = append(filters, q.Eq("Status", "completed"))
+	// var filters []q.Matcher
+	// var completed []*store.Task
+	// filters = append(filters, q.Eq("Status", "completed"))
 
 	// query.Find(&result) executes query and puts results into result
 	// err = db.Db.Select(filters...).Bucket("Entry").Find(index)
-	q1 := db.Db.Select(filters...).Bucket("completed")
-	if err = q1.Find(&completed); err != nil {
-		return
-	}
+	// q1 := db.Db.Select(filters...).Bucket("completed")
+	// if err = q1.Find(&completed); err != nil {
+	// 	return
+	// }
 
-	// Select query using q ranges
-	q2 := db.Db.Select(q.Lt("Date", time.Now()))
-	if q2 != nil {
-		return
-	}
-	q2.Find(&completed)
+	// // Select query using q ranges
+	// q2 := db.Db.Select(q.Lt("Date", time.Now()))
+	// if q2 != nil {
+	// 	return
+	// }
+	// q2.Find(&completed)
 
 }
