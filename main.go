@@ -92,20 +92,21 @@ func main() {
 			// r := rand.New(rand.NewSource(99)) // Update random item
 			// rnum := r.Intn(len(getAllResult))
 			// err = taskDb.UpdateTask(getAllResult[rnum].ID, newval)
-			err = taskDb.UpdateTask(getAllResult[idx].ID, newval)
+			err = taskDb.UpdateTask(getAllResult[idx].ID, "done")
 		}
 		if err != nil {
 			log.Fatal("Create error ", err)
 		}
 	case FIND: // find by list index
-		idx, err := strconv.Atoi(os.Args[2])
-		getAllResult, err := taskDb.GetAll(taskStorePath) // post transaction routine TODO in db routine
+		// idx, err := strconv.Atoi(os.Args[2])
+		val := os.Args[2]
+		// getAllResult, err := taskDb.GetAll(taskStorePath) // post transaction routine TODO in db routine
 		// to := &store.Task{}
-		// to, err := taskDb.FindOne(getAllResult[idx].ID)
+		to, err := taskDb.FindOne(val) // "done", "open"
 		if err != nil {
 			log.Fatal("GET all error", err)
 		}
-		log.Printf("FIND ONE: %s", getAllResult[idx])
+		log.Printf("FIND ONE: %s", to)
 	case RUNTESTS:
 		// store.GetTasksWhereCreatorStatus("open") // relational
 		taskDb.GetDoneTasks()        // filter

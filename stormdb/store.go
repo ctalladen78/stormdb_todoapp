@@ -95,7 +95,7 @@ func (s *Store) CreateTask(data *Task) error {
 func (s *Store) UpdateTask(key string, newValue string) error {
 	currentTask := &Task{}
 	currentTask.ID = key
-	currentTask.Value = []byte(newValue)
+	currentTask.Status = []byte(newValue)
 	log.Printf("UPDATING %s", key)
 	s.Db.Update(currentTask)
 	return nil
@@ -107,7 +107,7 @@ func (s *Store) FindOne(searchString string) (*Task, error) {
 	// output := []*Task{}
 	output := &Task{}
 
-	err := s.Db.One("ID", searchString, output)
+	err := s.Db.One("Status", []byte(searchString), output)
 	// err := s.Db.One("ID", searchString, output)
 	// query := s.Db.Select(q.Eq("Status", []byte("open")))
 	// err := s.Db.Find("Status", searchString, output)
